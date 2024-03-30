@@ -34,15 +34,39 @@ axios({
     data: {
         grant_type: 'client_credentials'
     }
-}).then((response) => console.log(response.data))
+}).then((response) => {
+    const acessToken = response.data.access_token;
+
+    const reqGN = axios.create({
+        baseURL: process.env.GN_ENDPOINT,
+        httpsAgent: agent,
+        headers: {
+            Authorization: `Bearer ${acessToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
 
 
-// curl --request POST \
-//   --url https://pix-h.api.efipay.com.br/oauth/token \
-//   --header 'Authorization: Basic Q2xpZW50X0lkX2ZmZDMyYmRhOWMyODI1ZjcyOWY5MTI3YWEwNjdhNzM2MjM4MWNkZTk6Q2xpZW50X1NlY3JldF8zYmNiYzcyMjYxZTBiZWUwNzY0NThjZDE2OThjZTVhMzc0M2NhYWUy' \
-//   --header 'Content-Type: application/json' \
-//   --header 'User-Agent: insomnia/8.6.1' \
-//   --data '{
-// 	"grant_type": "client_credentials"
-// }'
+
+    const dataCob = {
+        calendario: {
+            expiracao: 3600
+        },
+        devedor: {
+            cpf: '09745291412',
+            nome: 'Gabriel Estevão Nunes'
+        },
+        valor: {
+            original: '5.00'
+        },
+        chave: '83986732193',
+        solicitacaoPagador: 'Informe o número ou identificador do pedido.'
+    }
+
+
+    reqGN.post('/v2/cob', dataCob).then((response) => console.log(response.data))
+    
+})
+
+
 
