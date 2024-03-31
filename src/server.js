@@ -28,8 +28,8 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', 'src/views')
 
-app.get('/', (req,res) => {
-    axios({
+app.get('/', async(req,res) => {
+    const authResponse = await axios({
         method: 'POST',
         url: `${process.env.GN_ENDPOINT}/oauth/token`,
         headers: {
@@ -40,39 +40,43 @@ app.get('/', (req,res) => {
         data: {
             grant_type: 'client_credentials'
         }
-        }).then((response) => {
-            const acessToken = response.data.access_token;
-
-            const reqGN = axios.create({
-                baseURL: process.env.GN_ENDPOINT,
-                httpsAgent: agent,
-                headers: {
-                    Authorization: `Bearer ${acessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-
-
-
-            const dataCob = {
-                calendario: {
-                    expiracao: 3600
-                },
-                devedor: {
-                    cpf: '09745291412',
-                    nome: 'Gabriel Estevão Nunes'
-                },
-                valor: {
-                    original: '5.00'
-                },
-                chave: '83986732193',
-                solicitacaoPagador: 'Informe o número ou identificador do pedido.'
-            }
-
-
-            reqGN.post('/v2/cob', dataCob).then((response) => res.send(response.data))
+        });
         
+        
+    const acessToken = authResponse.data.access_token;
+
+    const reqGN = axios.create({
+        baseURL: process.env.GN_ENDPOINT,
+        httpsAgent: agent,
+        headers: {
+            Authorization: `Bearer ${acessToken}`,
+            'Content-Type': 'application/json'
+        }
     })
+
+
+
+    const dataCob = {
+        calendario: {
+            expiracao: 3600
+        },
+        devedor: {
+            cpf: '09745291412',
+            nome: 'Gabriel Estevão Nunes'
+        },
+        valor: {
+            original: '5.00'
+        },
+        chave: '83986732193',
+        solicitacaoPagador: 'Informe o número ou identificador do pedido.'
+    }
+
+
+    const cobResponse = await reqGN.post('/v2/cob', dataCob);
+
+    res.send(cobResponse.data);
+    
+
 
 
 })
